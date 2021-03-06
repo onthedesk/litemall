@@ -201,7 +201,10 @@ public class WxAuthController {
         if (!successful) {
             return ResponseUtil.fail(AUTH_CAPTCHA_FREQUENCY, "验证码未超时1分钟，不能发送");
         }
-        notifyService.notifySmsTemplate(phoneNumber, NotifyType.CAPTCHA, new String[]{code});
+        String[] params = new String[2];
+        params[0] = code;
+        params[1] = "5";
+        notifyService.notifySmsTemplate(phoneNumber, NotifyType.CAPTCHA, params);
 
         return ResponseUtil.ok();
     }

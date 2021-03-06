@@ -29,6 +29,7 @@
     </div>
 
     <van-panel title="优惠券"
+               v-if="shopInfos.couponList && shopInfos.couponList.length > 0"
                style=" padding-bottom: 10px;">
       <div class="van-coupon-item"
            v-for="(coupon,index) in shopInfos.couponList"
