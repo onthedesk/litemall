@@ -9,8 +9,11 @@
                indicator-color="white">
       <van-swipe-item v-for="(banner, index) in shopInfos.banner"
                       :key="index">
-        <img :src="banner.url"
-             style="height:230px">
+        <a :href="banner.link" v-if="banner.link">
+          <img :src="banner.url" style="height:230px">
+        </a>
+        <img v-else :src="banner.url" style="height:230px">
+
       </van-swipe-item>
     </van-swipe>
 
@@ -225,7 +228,7 @@ export default {
     },
     goTopic(id) {
       return `#/items/topic/${id}`;
-    },    
+    },
     getCoupon(id) {
       couponReceive({ couponId: id }).then(res => {
         Toast.success('领取成功');
