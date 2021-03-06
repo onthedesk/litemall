@@ -45,6 +45,7 @@ public class WxFeedbackController {
             return ResponseUtil.badArgument();
         }
 
+        // 是否包含图片
         Boolean hasPicture = feedback.getHasPicture();
         if (hasPicture == null || !hasPicture) {
             feedback.setPicUrls(new String[0]);

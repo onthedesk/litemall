@@ -131,9 +131,9 @@ export default {
       height: auto;
       overflow: hidden;
       padding: 25px 20px;
-      font-size: 20px;
+      font-size: 18px;
       color: #666;
-      line-height: 20px;
+      line-height: 28px;
       text-align: center;
     }
   }

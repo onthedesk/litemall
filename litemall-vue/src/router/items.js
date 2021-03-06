@@ -27,11 +27,18 @@ export default [
     path: '/items/detail/:itemId',
     name: 'detail',
     props: true,
+    meta: {
+      title: ""
+    },
     component: () => import('@/views/items/detail')
   },
   {
     path: '/items/category',
     name: 'category',
+    meta: {
+      title: "分类",
+      showHeader: true
+    },
     component: () => import('@/views/items/category'),
     props: route => route.query
   },
@@ -57,6 +64,10 @@ export default [
     path: '/items/brand/:brandId',
     name: 'brand',
     props: true,
+    meta: {
+      title: "品牌直供",
+      showHeader: true
+    },
     component: () => import('@/views/items/brand')
   },
   {

@@ -9,34 +9,43 @@
 
     <md-field-group>
       <md-field
-        v-model="account"
-        icon="username"
-        placeholder="请输入测试账号 user123"
+        v-model="mobile"
+        icon="mobile"
+        placeholder="请输入手机号"
         right-icon="clear-full"
         name="user"
         data-vv-as="帐号"
         @right-click="clearText"
       />
 
-      <md-field
-        v-model="password"
-        icon="lock"
-        placeholder="请输入测试密码 user123"
-        :type="visiblePass ? 'text' : 'password'"
-        :right-icon="visiblePass ? 'eye-open' : 'eye-close'"
-        data-vv-as="密码"
-        name="password"
-        @right-click="visiblePass = !visiblePass"
-      />
+      <div class="captcha-wrapper">
+        <md-field
+          v-model="captcha"
+          icon="lock"
+          max-length="4"
+          placeholder="图形验证码"
+          data-vv-as="图形验证码"
+          name="captcha">
+        </md-field>
 
-      <div class="clearfix">
-        <div class="float-l">
-          <router-link to="/login/registerGetCode">免费注册</router-link>
-        </div>
-        <div class="float-r">
-          <router-link to="/login/forget">忘记密码</router-link>
+        <div class="captcha-img-wrapper">
+          <img :src="codeImg" @click="getCaptcha">
         </div>
       </div>
+
+
+
+      <md-field v-model="code" icon="lock" placeholder="请输入验证码">
+        <div slot="rightIcon" @click="getCode" class="getCode red">
+          <countdown v-if="counting" :time="60000" @end="countDownEnd">
+            <template slot-scope="props">{{ +props.seconds || 60 }}秒后获取</template>
+          </countdown>
+          <span v-else>获取验证码</span>
+        </div>
+      </md-field>
+
+      <!-- todo 用户协议-->
+
 
       <van-button size="large" type="danger" :loading="isLogining" @click="loginSubmit">登录</van-button>
     </md-field-group>
@@ -51,7 +60,7 @@
 import field from '@/components/field/';
 import fieldGroup from '@/components/field-group/';
 
-import { authLoginByAccount } from '@/api/api';
+import { authLoginByAccount, authRegisterCaptcha, getKaptcha } from '@/api/api';
 import { setLocalStorage } from '@/utils/local-storage';
 import { emailReg, mobileReg } from '@/utils/validate';
 
@@ -67,17 +76,23 @@ export default {
   },
   data() {
     return {
-      account: '',
-      password: '',
-      visiblePass: false,
+			mobile: '',
+			captcha: '',
+			codeImg: '',
+      code: '',
+			counting: false,
       isLogining: false,
       userInfo: {}
     };
   },
 
+  created() {
+  	this.getCaptcha()
+  },
+
   methods: {
     clearText() {
-      this.account = '';
+      this.mobile = '';
     },
 
     validate() {
@@ -85,7 +100,10 @@ export default {
     },
 
     login() {
-      let loginData = this.getLoginData();
+      let loginData = {
+      	mobile: this.mobile,
+        code: this.code
+      };
       authLoginByAccount(loginData).then(res => {
         this.userInfo = res.data.data.userInfo;
         setLocalStorage({
@@ -101,6 +119,29 @@ export default {
     },
 
     loginSubmit() {
+
+			// 先判断手机号
+			if (!this.mobile) {
+				Toast.fail('请输入手机号')
+				return false
+			}
+
+			if (!/^1\d{10}$/.test(this.mobile)) {
+				Toast.fail('请输入正确的手机号')
+				return false
+			}
+
+			// 验证是否输入短信验证码
+      if (!this.code) {
+      	Toast.fail('请输入短信验证码')
+        return false
+      }
+
+      if (!/^\d{4,6}$/.test(this.code)) {
+      	Toast.fail('请输入正确的短信验证码')
+        return false
+      }
+
       this.isLogining = true;
       try {
         this.validate();
@@ -121,7 +162,56 @@ export default {
       window.location = '#/user/';
     },
 
-    getLoginData() {
+		getCode() {
+
+    	if (this.counting)  {
+    		return false
+      }
+
+    	// 先判断手机号
+      if (!this.mobile) {
+      	Toast.fail('请输入手机号')
+				return false
+      }
+
+      if (!/^1\d{10}$/.test(this.mobile)) {
+      	Toast.fail('请输入正确的手机号')
+				return false
+      }
+
+
+    	// 判断图形验证码
+
+      if (!this.captcha) {
+				Toast.fail('请输入图形验证码')
+      	return false
+      }
+
+      if (!/^[0-9a-zA-Z]{4}$/.test(this.captcha)) {
+      	Toast.fail('请输入正确的图形验证码')
+        return false
+      }
+
+			this.counting = true;
+			let data = {
+				mobile: this.mobile,
+        captcha: this.captcha
+			};
+			authRegisterCaptcha(data).then(res => {
+				this.counting = true;
+			}).catch(error => {
+				alert(error.errmsg);
+				this.counting = true;
+			});
+		},
+
+		getCaptcha() {
+			getKaptcha().then(response => {
+				this.codeImg = response.data.data
+			})
+    },
+
+		getLoginData() {
       const password = this.password;
       const account = this.getUserType(this.account);
       return {
@@ -137,7 +227,11 @@ export default {
         ? 'email'
         : 'username';
       return accountType;
-    }
+    },
+
+		countDownEnd() {
+			this.counting = false;
+		}
   }
 };
 </script>
@@ -159,6 +253,23 @@ export default {
     padding-top: 5px;
     font-size: 16px;
   }
+}
+.captcha-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  .captcha-img-wrapper {
+    padding-left: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      border-radius: 5px;
+    }
+  }
+
 }
 .register {
   padding-top: 40px;

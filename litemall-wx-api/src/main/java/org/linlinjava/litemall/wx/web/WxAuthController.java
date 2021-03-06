@@ -1,8 +1,10 @@
 package org.linlinjava.litemall.wx.web;
 
+import com.google.code.kaptcha.Producer;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
+import com.sun.org.apache.regexp.internal.RE;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.notify.NotifyService;
@@ -26,8 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import sun.misc.BASE64Encoder;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -56,34 +64,85 @@ public class WxAuthController {
     @Autowired
     private CouponAssignService couponAssignService;
 
+    @Autowired
+    private Producer kaptchaProducer;
+
+    /**
+     * 获取图形验证码
+     * @param request
+     * @returnc
+     */
+
+    @GetMapping("kaptcha")
+    public Object kaptcha(HttpServletRequest request) {
+        String kaptcha = doKaptcha(request);
+        if (kaptcha != null) {
+            return ResponseUtil.ok(kaptcha);
+        }
+        return ResponseUtil.fail();
+    }
+
+    private String doKaptcha(HttpServletRequest request) {
+        // 生成验证码
+        String text = kaptchaProducer.createText();
+        BufferedImage image = kaptchaProducer.createImage(text);
+        HttpSession session = request.getSession();
+        session.setAttribute("kaptcha", text);
+
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, "jpeg", outputStream);
+            BASE64Encoder encoder = new BASE64Encoder();
+            String base64 = encoder.encode(outputStream.toByteArray());
+            String captchaBase64 = "data:image/jpeg;base64," + base64.replaceAll("\r\n", "");
+            return captchaBase64;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     /**
      * 账号登录
+     * 统一使用手机验证码登录
      *
-     * @param body    请求内容，{ username: xxx, password: xxx }
+     * @param body    请求内容，{ mobile: xxx, code: xxx }
      * @param request 请求对象
      * @return 登录结果
      */
     @PostMapping("login")
     public Object login(@RequestBody String body, HttpServletRequest request) {
-        String username = JacksonUtil.parseString(body, "username");
-        String password = JacksonUtil.parseString(body, "password");
-        if (username == null || password == null) {
+        String mobile = JacksonUtil.parseString(body, "mobile");
+        String code = JacksonUtil.parseString(body, "code");
+        if (mobile == null || code == null) {
             return ResponseUtil.badArgument();
         }
 
-        List<LitemallUser> userList = userService.queryByUsername(username);
+        //判断验证码是否正确
+        String cacheCode = CaptchaCodeManager.getCachedCaptcha(mobile);
+        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(code)) {
+            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
+        }
+
+        List<LitemallUser> userList = userService.queryByMobile(mobile);
         LitemallUser user = null;
         if (userList.size() > 1) {
             return ResponseUtil.serious();
         } else if (userList.size() == 0) {
-            return ResponseUtil.fail(AUTH_INVALID_ACCOUNT, "账号不存在");
+
+            // todo 首次登录，注册账号
+            // return ResponseUtil.fail(AUTH_INVALID_ACCOUNT, "账号不存在");
+            user = new LitemallUser();
+            user.setMobile(mobile);
+            user.setAvatar("https://yanxuan.nosdn.127.net/80841d741d7fa3073e0ae27bf487339f.jpg?imageView&quality=90&thumbnail=64x64");
+            user.setGender((byte) 0);
+            user.setUserLevel((byte) 0);
+            user.setStatus((byte) 0);
+            user.setUsername("");
+            user.setPassword("");
+            userService.add(user);
+
         } else {
             user = userList.get(0);
-        }
-
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        if (!encoder.matches(password, user.getPassword())) {
-            return ResponseUtil.fail(AUTH_INVALID_ACCOUNT, "账号密码不对");
         }
 
         // 更新登录情况
@@ -95,7 +154,7 @@ public class WxAuthController {
 
         // userInfo
         UserInfo userInfo = new UserInfo();
-        userInfo.setNickName(username);
+        userInfo.setNickName("");
         userInfo.setAvatarUrl(user.getAvatar());
 
         // token
@@ -177,20 +236,40 @@ public class WxAuthController {
     /**
      * 请求注册验证码
      *
-     * TODO
-     * 这里需要一定机制防止短信验证码被滥用
+     *
+     * 需要验证图形验证码防止短信验证码被滥用，首先验证图形验证码的正确性
      *
      * @param body 手机号码 { mobile }
      * @return
      */
     @PostMapping("regCaptcha")
-    public Object registerCaptcha(@RequestBody String body) {
+    public Object registerCaptcha(@RequestBody String body, HttpServletRequest request) {
         String phoneNumber = JacksonUtil.parseString(body, "mobile");
+        String captcha = JacksonUtil.parseString(body, "captcha");
+        HttpSession session = request.getSession();
+        String kaptcha = (String)session.getAttribute("kaptcha");
         if (StringUtils.isEmpty(phoneNumber)) {
             return ResponseUtil.badArgument();
         }
         if (!RegexUtil.isMobileSimple(phoneNumber)) {
             return ResponseUtil.badArgumentValue();
+        }
+
+        if (StringUtils.isEmpty(captcha)) {
+            return ResponseUtil.badArgument();
+        }
+
+        if (!RegexUtil.isCaptcha(captcha)) {
+            return ResponseUtil.badArgumentValue();
+        }
+
+        if (StringUtils.isEmpty(kaptcha)) {
+            // 图形验证码已失效
+            return ResponseUtil.fail(701, "图形验证码已失效，请重新获取");
+        }
+
+        if (!kaptcha.equalsIgnoreCase(captcha)) {
+            return ResponseUtil.fail(402, "图形验证码错误");
         }
 
         if (!notifyService.isSmsEnable()) {
@@ -201,7 +280,10 @@ public class WxAuthController {
         if (!successful) {
             return ResponseUtil.fail(AUTH_CAPTCHA_FREQUENCY, "验证码未超时1分钟，不能发送");
         }
-        notifyService.notifySmsTemplate(phoneNumber, NotifyType.CAPTCHA, new String[]{code});
+        String[] params = new String[2];
+        params[0] = code;
+        params[1] = "5";
+        notifyService.notifySmsTemplate(phoneNumber, NotifyType.CAPTCHA, params);
 
         return ResponseUtil.ok();
     }

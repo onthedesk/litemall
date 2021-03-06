@@ -34,6 +34,12 @@ public class RegexUtil {
      */
     public static final String REGEX_TEL = "^0\\d{2,3}[- ]?\\d{7,8}";
     /**
+     * Regex of captcha code
+     */
+
+    public static final String REGEX_CAPTCHA = "^[0-9|a-z|A-Z]{4}$";
+
+    /**
      * Regex of id card number which length is 15.
      */
     public static final String REGEX_ID_CARD15 = "^[1-9]\\d{7}((0\\d)|(1[0-2]))(([0|1|2]\\d)|3[0-1])\\d{3}$";
@@ -137,6 +143,15 @@ public class RegexUtil {
      */
     public static boolean isMobileSimple(final CharSequence input) {
         return isMatch(REGEX_MOBILE_SIMPLE, input);
+    }
+
+    /**
+     * Return whether input matches regex of captcha
+     *
+     */
+
+    public static boolean isCaptcha(final CharSequence input) {
+        return isMatch(REGEX_CAPTCHA, input);
     }
 
     /**

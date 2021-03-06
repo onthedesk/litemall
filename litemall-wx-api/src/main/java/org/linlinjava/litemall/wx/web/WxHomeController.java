@@ -144,7 +144,7 @@ public class WxHomeController {
         }
         catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             executorService.shutdown();
         }
         return ResponseUtil.ok(entity);

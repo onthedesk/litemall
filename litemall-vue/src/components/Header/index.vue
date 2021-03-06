@@ -1,8 +1,8 @@
 <template>
 <div>
-    <van-nav-bar :title="title" left-text="返回" left-arrow @click-left="goBack" v-show="showHeader"/>   
+    <van-nav-bar :title="title" left-text="返回" left-arrow @click-left="goBack" v-show="showHeader"/>
 </div>
-     
+
 </template>
 <script>
 import { NavBar } from 'vant';
@@ -12,7 +12,7 @@ export default {
     name:"v-header",
     data(){
         return {
-            title:"",
+            title: "",
         };
     },
     computed: {
