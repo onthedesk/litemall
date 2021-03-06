@@ -58,7 +58,7 @@
       </van-cell>
       <van-field v-model="message" placeholder="请输入备注" label="订单备注">
       <template slot="icon">{{message.length}}/50</template>
-      </van-field>      
+      </van-field>
     </van-cell-group>
 
     <van-submit-bar
@@ -96,7 +96,7 @@ export default {
       showList: false,
       chosenCoupon: -1,
       coupons: [],
-      disabledCoupons: [] 
+      disabledCoupons: []
     };
   },
   created() {
@@ -104,10 +104,10 @@ export default {
   },
 
   methods: {
-    onSubmit() {     
+    onSubmit() {
       const {AddressId, CartId, CouponId, UserCouponId} = getLocalStorage('AddressId', 'CartId', 'CouponId', 'UserCouponId');
 
-      if (AddressId === null) {
+      if (AddressId === null || AddressId == 0) {
         Toast.fail('请设置收货地址');
         return;
       }
@@ -124,7 +124,7 @@ export default {
         grouponRulesId: 0,
         message: this.message
       }).then(res => {
-        
+
         // 下单成功，重置下单参数。
         setLocalStorage({AddressId: 0, CartId: 0, CouponId: 0});
 
@@ -172,7 +172,7 @@ export default {
             startAt: new Date(c.startTime).getTime()/1000,
             endAt: new Date(c.endTime).getTime()/1000,
             valueDesc: c.discount,
-            unitDesc: '元'            
+            unitDesc: '元'
           }
           if (c.available) {
             this.coupons.push(coupon);
@@ -180,7 +180,7 @@ export default {
             this.disabledCoupons.push(coupon);
           }
         }
-        
+
         this.showList = true
       })
     },
@@ -207,7 +207,7 @@ export default {
     onChange(index) {
       this.showList = false;
       this.chosenCoupon = index;
-      
+
       if(index === -1 ){
         setLocalStorage({CouponId: -1, UserCouponId: -1});
       }
@@ -221,7 +221,7 @@ export default {
     },
     onExchange() {
       this.$toast("兑换暂不支持");
-    }    
+    }
   },
 
   components: {
