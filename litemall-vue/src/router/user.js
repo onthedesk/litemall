@@ -14,6 +14,7 @@ const UserInfo_SetPassword = () => import('@/views/user/user-information-set/set
 const UserOrderList = () => import('@/views/user/order-list');
 const UserCouponList = () => import('@/views/user/coupon-list');
 const UserRefundList = () => import('@/views/user/refund-list');
+const UserCoinList = () => import('@/views/user/coin-list')
 
 const Tabbar = () => import('@/components/Tabbar/');
 
@@ -24,8 +25,7 @@ export default [
     meta: {
       keepAlive: true,
       login: true,
-      showHeader:false,
-      title:"购物车"
+      showHeader:false
     },
     components: { default: tab_user, tabbar: Tabbar }
   },
@@ -68,7 +68,7 @@ export default [
     path: '/user/feedback',
     name: 'user-feedback',
     component: UserFeedback
-  },  
+  },
   {
     path: '/user/information',
     name: 'user-information',
@@ -96,17 +96,34 @@ export default [
     path: '/user/order/list/:active',
     name: 'user-order-list',
     props: true,
+    meta: {
+      title: '我的订单',
+      showHeader: true
+    },
     component: UserOrderList
   },
   {
     path: '/user/coupon/list/:active',
     name: 'user-coupon-list',
     props: true,
+    meta: {
+      title: '我的优惠券',
+      showHeader: true
+    },
     component: UserCouponList
   },
   {
     path: '/user/refund/list',
     name: 'user-refund-list',
     component: UserRefundList
+  },
+  {
+    path: '/user/coin/list',
+    name: 'user-coin-list',
+    meta: {
+      title: '我的积分',
+      showHeader: true
+    },
+    component: UserCoinList
   }
 ];

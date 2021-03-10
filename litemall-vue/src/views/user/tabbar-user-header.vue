@@ -1,10 +1,31 @@
 <template>
-  <div class="user_header" :style="{backgroundImage: `url(${background_image})`}">
+  <div class="user_header">
     <van-icon name="set" class="user_set" @click="toSetting"/>
-    <div class="user_avatar">
-      <img :src="avatar" alt="头像" width="55" height="55">
+    <!--<div class="user_avatar">-->
+      <!--<img :src="avatar" alt="头像" width="55" height="55">-->
+    <!--</div>-->
+    <div class="nickname_wrapper">Hi, {{nickName}}</div>
+
+    <div class="coin_wrapper" @click="toCoin">
+      <div class="coin_box" :style="{backgroundImage: `url(${background_image})`}">
+        <div class="coin_box_title_wrapper">
+          我的积分
+        </div>
+        <div class="coin_box_content_wrapper">
+          <div class="coin_box_amount">
+            <span class="number">11.19</span>
+            <span class="unit">积分</span>
+          </div>
+          <div class="coin_box_due_date">
+            有效期至{{dueDate}}
+          </div>
+        </div>
+      </div>
+
+      <div class="right-arrow">
+        <van-icon name="arrow"></van-icon>
+      </div>
     </div>
-    <div>{{nickName}}</div>
   </div>
 </template>
 
@@ -25,9 +46,10 @@ export default {
 
   data() {
     return {
-      nickName: '昵称',
+      nickName: '',
       avatar: avatar_default,
-      background_image: bg_default
+      background_image: bg_default,
+			dueDate: '2023-01-01'
     };
   },
 
@@ -39,13 +61,19 @@ export default {
     getUserInfo() {
       const infoData = getLocalStorage(
         'nickName',
-        'avatar'
+        'avatar',
+        'mobile'
       );
       this.avatar = infoData.avatar || avatar_default;
-      this.nickName = infoData.nickName || '昵称';
+      this.nickName = infoData.nickName || infoData.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
     },
     toSetting() {
       this.$router.push({ name: 'user-information' });
+    },
+		toCoin() {
+    	this.$router.push({
+        name: 'user-coin-list'
+      })
     }
   }
 };
@@ -55,10 +83,71 @@ export default {
 .user_header {
   background-repeat: no-repeat;
   background-size: cover;
-  height: 130px;
   text-align: center;
-  color: #fff;
+  color: #333;
   padding-top: 30px;
+  background-color: #fff;
+
+  .nickname_wrapper {
+    font-size: 18px;
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  .coin_wrapper {
+    position: relative;
+    .coin_box {
+      margin: 20px 10px 10px;
+      padding: 15px 15px 10px;
+      color: #fff;
+      text-align: left;
+      border-radius: 5px;
+
+      .coin_box_title_wrapper {
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+
+      .coin_box_content_wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+
+        .coin_box_amount {
+
+          display: flex;
+          align-items: baseline;
+
+          .number {
+            font-size: 22px;
+            font-weight: 500;
+            margin-right: 5px;
+          }
+
+          .unit {
+            font-weight: 400;
+            margin-right: 5px;
+          }
+        }
+
+        .coin_box_due_date {
+          font-size: 12px;
+          font-weight: 300;
+          margin-right: 20px;
+        }
+      }
+    }
+
+    .right-arrow {
+      position: absolute;
+      color: #fff;
+      top: 40%;
+      right: 20px;
+      .van-icon {
+        font-size: 12px;
+      }
+    }
+  }
 }
 
 .user_set {

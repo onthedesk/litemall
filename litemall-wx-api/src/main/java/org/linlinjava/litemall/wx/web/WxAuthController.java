@@ -82,6 +82,7 @@ public class WxAuthController {
         return ResponseUtil.fail();
     }
 
+    // todo 封装成service
     private String doKaptcha(HttpServletRequest request) {
         // 生成验证码
         String text = kaptchaProducer.createText();
@@ -160,6 +161,8 @@ public class WxAuthController {
         UserInfo userInfo = new UserInfo();
         userInfo.setNickName("");
         userInfo.setAvatarUrl(user.getAvatar());
+        userInfo.setMobile(user.getMobile());
+
 
         // token
         String token = UserTokenManager.generateToken(user.getId());
@@ -269,11 +272,11 @@ public class WxAuthController {
 
         if (StringUtils.isEmpty(kaptcha)) {
             // 图形验证码已失效
-            return ResponseUtil.fail(701, "图形验证码已失效，请重新获取");
+            return ResponseUtil.fail(751, "图形验证码已失效，请重新获取");
         }
 
         if (!kaptcha.equalsIgnoreCase(captcha)) {
-            return ResponseUtil.fail(402, "图形验证码错误");
+            return ResponseUtil.fail(752, "图形验证码错误");
         }
 
         if (!notifyService.isSmsEnable()) {
@@ -282,7 +285,7 @@ public class WxAuthController {
         String code = CharUtil.getRandomNum(6);
         boolean successful = CaptchaCodeManager.addToCache(phoneNumber, code);
         if (!successful) {
-            return ResponseUtil.fail(AUTH_CAPTCHA_FREQUENCY, "验证码未超时1分钟，不能发送");
+            return ResponseUtil.fail(AUTH_CAPTCHA_FREQUENCY, "验证码未超时5分钟，不能发送");
         }
         String[] params = new String[2];
         params[0] = code;

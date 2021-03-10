@@ -106,14 +106,21 @@ export default {
         code: this.code
       };
       authLoginByAccount(loginData).then(res => {
-        this.userInfo = res.data.data.userInfo;
-        setLocalStorage({
-          Authorization: res.data.data.token,
-          avatar: this.userInfo.avatarUrl,
-          nickName: this.userInfo.nickName
-        });
 
-        this.routerRedirect();
+      	if (res.data.errno === 0) {
+					this.userInfo = res.data.data.userInfo;
+					setLocalStorage({
+						Authorization: res.data.data.token,
+						avatar: this.userInfo.avatarUrl,
+						nickName: this.userInfo.nickName,
+						mobile: this.userInfo.mobile
+					});
+
+					this.routerRedirect();
+        } else {
+      		Toast.fail(res.data.errmsg)
+        }
+
       }).catch(error => {
         Toast.fail(error.data.errmsg);
       });
@@ -201,8 +208,16 @@ export default {
 			authRegisterCaptcha(data).then(res => {
 				this.counting = true;
 			}).catch(error => {
-				alert(error.errmsg);
-				this.counting = true;
+				Toast.fail(error.data.errmsg);
+				if (error.data.errno  === 751) {
+					this.getCaptcha()
+        }
+
+				if (error.data.errno === 751 || error.data.errno === 752) {
+					this.countDownEnd()
+        } else {
+					this.counting = true;
+				}
 			});
 		},
 

@@ -1,24 +1,19 @@
 <template>
 <div>
-    <van-nav-bar :title="title" left-text="返回" left-arrow @click-left="goBack" v-show="showHeader"/>
+    <van-nav-bar :title="titleHeader" left-text="返回" left-arrow @click-left="goBack" v-show="showHeader"/>
 </div>
 
 </template>
 <script>
 import { NavBar } from 'vant';
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
     name:"v-header",
-    data(){
-        return {
-            title: "",
-        };
-    },
     computed: {
+        ...mapGetters(['titleHeader']),
         showHeader:function(){
             let header=this.$store.getters.showHeader;
-            this.title=this.$store.getters.titleHeader;
             return header
         }
     },
