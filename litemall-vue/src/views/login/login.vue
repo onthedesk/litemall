@@ -14,6 +14,7 @@
         placeholder="请输入手机号"
         right-icon="clear-full"
         name="user"
+        type="number"
         data-vv-as="帐号"
         @right-click="clearText"
       />

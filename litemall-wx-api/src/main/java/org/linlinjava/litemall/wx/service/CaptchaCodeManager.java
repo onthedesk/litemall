@@ -35,8 +35,8 @@ public class CaptchaCodeManager {
         CaptchaItem captchaItem = new CaptchaItem();
         captchaItem.setPhoneNumber(phoneNumber);
         captchaItem.setCode(code);
-        // 有效期为1分钟
-        captchaItem.setExpireTime(LocalDateTime.now().plusMinutes(1));
+        // 有效期为5分钟
+        captchaItem.setExpireTime(LocalDateTime.now().plusMinutes(5));
 
         captchaCodeCache.put(phoneNumber, captchaItem);
 
@@ -55,8 +55,9 @@ public class CaptchaCodeManager {
             return null;
 
         //有电话记录但是已经过期
+        // todo 提醒前端验证码已过期
         if (captchaCodeCache.get(phoneNumber).getExpireTime().isBefore(LocalDateTime.now())) {
-            return null;
+            return "-1";
         }
 
         return captchaCodeCache.get(phoneNumber).getCode();

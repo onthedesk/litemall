@@ -123,6 +123,10 @@ public class WxAuthController {
             return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
         }
 
+        if (cacheCode.equalsIgnoreCase("-1")) {
+            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码已过期");
+        }
+
         List<LitemallUser> userList = userService.queryByMobile(mobile);
         LitemallUser user = null;
         if (userList.size() > 1) {

@@ -4,8 +4,9 @@
       <van-cell title="头像" class="cell_middle">
         <van-uploader :afterRead="avatarAfterRead">
           <div class="user_avatar_upload">
+            <!--:src="avatar + '?x-oss-process=image/resize,m_fill,h_50,w_50'"-->
             <img
-              :src="avatar + '?x-oss-process=image/resize,m_fill,h_50,w_50'"
+              :src="avatar"
               alt="你的头像"
               v-if="avatar"
             >
