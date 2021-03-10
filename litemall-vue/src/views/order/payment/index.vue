@@ -17,17 +17,32 @@
       <div class="pay_way_title">选择支付方式</div>
       <van-radio-group v-model="payWay">
         <van-cell-group>
-          <van-cell>
+          <van-cell class="pay_type_wrapper" title-class="pay_type_title">
             <template slot="title">
-              <img src="../../../assets/images/ali_pay.png" alt="支付宝" width="82" height="29">
+              <van-icon name="gift" class="pay_type_icon coin"></van-icon>
+              <span class="pay_type_text">积分支付</span>
             </template>
-            <van-radio name="ali"/>
+            <template slot="right-icon">
+              <van-radio name="coin"/>
+            </template>
           </van-cell>
-          <van-cell>
+          <van-cell class="pay_type_wrapper" title-class="pay_type_title">
             <template slot="title">
-              <img src="../../../assets/images/wx_pay.png" alt="微信支付" width="113" height="23">
-            </template>            
-            <van-radio name="wx"/>
+              <van-icon name="alipay" class="pay_type_icon alipay"></van-icon>
+              <span class="pay_type_text">支付宝</span>
+            </template>
+            <template slot="right-icon">
+              <van-radio name="ali"/>
+            </template>
+          </van-cell>
+          <van-cell class="pay_type_wrapper" title-class="pay_type_title">
+            <template slot="title">
+              <van-icon name="wechat-pay" class="pay_type_icon wechat"></van-icon>
+              <span class="pay_type_text">微信支付</span>
+            </template>
+            <template slot="right-icon">
+              <van-radio name="wx"/>
+            </template>
           </van-cell>
         </van-cell-group>
       </van-radio-group>
@@ -69,7 +84,7 @@ export default {
       });
     },
     pay() {
-      
+
       Dialog.alert({
         message: '你选择了' + (this.payWay === 'wx' ? '微信支付' : '支付宝支付')
       }).then(() => {
@@ -141,6 +156,8 @@ export default {
           }
         } else {
           //todo : alipay
+
+          //todo: 积分支付
         }
       });
     },
@@ -195,6 +212,33 @@ export default {
 .time_down {
   background-color: #fffeec;
   padding: 10px 15px;
+}
+
+.pay_type_title {
+  display: flex;
+}
+
+.pay_type_icon {
+  font-size: 24px;
+  line-height: 32px;
+
+  &.coin {
+    color: #db3d3c;
+  }
+
+  &.alipay {
+    color: #027aff;
+  }
+
+  &.wechat {
+    color: #07c160;
+  }
+}
+
+.pay_type_text {
+  display: inline-block;
+  line-height: 32px;
+  padding-left: 5px;
 }
 
 .pay_submit {
