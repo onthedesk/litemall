@@ -1,7 +1,6 @@
 package org.linlinjava.litemall.db.service;
 
 import org.linlinjava.litemall.db.dao.LitemallPlatformAccountMapper;
-import org.linlinjava.litemall.db.domain.LitemallPlatform;
 import org.linlinjava.litemall.db.domain.LitemallPlatformAccount;
 import org.linlinjava.litemall.db.domain.LitemallPlatformAccountExample;
 import org.springframework.stereotype.Service;

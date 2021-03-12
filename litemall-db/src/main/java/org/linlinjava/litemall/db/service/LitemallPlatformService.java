@@ -2,7 +2,6 @@ package org.linlinjava.litemall.db.service;
 
 import org.linlinjava.litemall.db.dao.LitemallPlatformMapper;
 import org.linlinjava.litemall.db.domain.LitemallPlatform;
-import org.linlinjava.litemall.db.domain.LitemallPlatformExample;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

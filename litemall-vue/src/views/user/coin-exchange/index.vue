@@ -63,7 +63,7 @@
       </div>
       <div class="panel-wrapper">
         <div class="btn cancel">联系客服</div>
-        <div class="btn continue" @click="toExchange">立即兑换</div>
+        <div class="btn continue" @click="toExchange(item)">立即兑换</div>
       </div>
     </div>
   </div>
@@ -73,19 +73,19 @@
 
       <van-form @submit="onExchangeSubmit">
         <van-field
-          v-model="platform"
+          v-model="currentPlatform.platformName"
           name="平台名称"
           readonly
           label="平台名称">
         </van-field>
         <van-field
-          v-model="mobile"
+          v-model="currentPlatform.mobile"
           name="手机号"
           readonly
           label="手机号">
         </van-field>
         <van-field
-          v-model="availableAmount"
+          v-model="currentPlatform.availableAmount"
           name="可兑换金额"
           readonly
           label="可兑换金额">
@@ -114,6 +114,9 @@
               size="small" type="primary" @click="getCode">获取验证码</van-button>
           </template>
         </van-field>
+        <div class="notify-failed-wrapper">
+          <span>收不到验证码？</span>
+        </div>
         <div style="margin: 16px;">
           <van-button round block type="danger" native-type="submit">立即兑换</van-button>
         </div>
@@ -126,7 +129,7 @@
 
 <script>
 
-  import { coinAccount } from '@/api/api'
+  import { coinAccount, authCaptcha } from '@/api/api'
 
   import { Form, Field, Step, Steps, Toast, Dialog } from 'vant'
   import Vue from 'vue'
@@ -140,14 +143,12 @@
 			return {
 				name: '',
         idCard: '',
-        mobile: '18600399682',
-        platform: '天财宝',
         list: [],
         code: '',
         amount: '',
 				counting: false,
-				availableAmount: 1000,
-				active: 0
+				active: 0,
+        currentPlatform: null
       }
     },
     created() {
@@ -212,18 +213,33 @@
 					}  else {
 						this.active = 0
 					}
-					console.log(res)
 				}).catch(error => {
 					// 未查询到账户
 					Toast.fail(error.data.errmsg)
 				})
       },
-			onExchangeSubmit() {},
-			toExchange() {
+			onExchangeSubmit() {
+
+      },
+			toExchange(item) {
+				this.currentPlatform = item
 				this.active += 1
       },
       getCode() {
+
+				if (!this.currentPlatform.mobile) {
+					Toast.fail('请联系平台客服，更新您的手机号')
+          return false
+        }
+
 				this.counting = true
+				authCaptcha({
+          mobile: this.currentPlatform.mobile
+        }).then(res => {
+
+        }).catch(error => {
+        	Toast.fail(error.data.errmsg)
+        })
       },
 			countDownEnd() {
 				this.counting = false;
@@ -320,5 +336,10 @@
     }
   }
 
+  .notify-failed-wrapper {
+    font-size: 12px;
+    padding-left: 15px;
+    color: #1989fa;
+  }
 
 </style>
