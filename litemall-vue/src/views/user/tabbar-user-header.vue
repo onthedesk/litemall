@@ -13,10 +13,10 @@
         </div>
         <div class="coin_box_content_wrapper">
           <div class="coin_box_amount">
-            <span class="number">11.19</span>
+            <span class="number">{{amount}}</span>
             <span class="unit">积分</span>
           </div>
-          <div class="coin_box_due_date">
+          <div class="coin_box_due_date" v-if="dueDate">
             有效期至{{dueDate}}
           </div>
         </div>
@@ -33,6 +33,7 @@
 import avatar_default from '@/assets/images/avatar_default.png';
 import bg_default from '@/assets/images/user_head_bg.png';
 import { getLocalStorage } from '@/utils/local-storage';
+import { userCoin } from '@/api/api'
 
 export default {
   name: 'user-header',
@@ -49,12 +50,26 @@ export default {
       nickName: '',
       avatar: avatar_default,
       background_image: bg_default,
-			dueDate: '2023-01-01'
+      amount: 0,
+			dueDate: ''
     };
   },
 
   activated() {
     this.getUserInfo();
+  },
+
+  created() {
+		userCoin().then(res => {
+			console.log(res)
+      if (res.data.data.coin) {
+      	let coin = res.data.data.coin
+      	this.amount = coin.availableAmount
+        this.dueDate = coin.endTime.split(' ')[0]
+      }
+    }).catch(error => {
+    	Toast.fail(error.data.errmsg)
+    })
   },
 
   methods: {

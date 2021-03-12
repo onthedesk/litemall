@@ -15,6 +15,7 @@ const UserOrderList = () => import('@/views/user/order-list');
 const UserCouponList = () => import('@/views/user/coupon-list');
 const UserRefundList = () => import('@/views/user/refund-list');
 const UserCoinList = () => import('@/views/user/coin-list')
+const UserCoinExchange = () => import('@/views/user/coin-exchange')
 
 const Tabbar = () => import('@/components/Tabbar/');
 
@@ -50,7 +51,8 @@ export default [
     name: 'address-edit',
     props: true,
     meta: {
-      login: true
+      login: true,
+      showHeader:false
     },
     component: UserAddressEdit
   },
@@ -125,5 +127,14 @@ export default [
       showHeader: true
     },
     component: UserCoinList
+  },
+  {
+    path: '/user/coin/exchange',
+    name: 'user-coin-exchange',
+    meta: {
+      title: '积分兑换',
+      showHeader: true
+    },
+    component: UserCoinExchange
   }
 ];

@@ -74,7 +74,7 @@ export function authReset(data) {
     data
   })
 }
-const AuthRegisterCaptcha='wx/auth/regCaptcha'; //注册验证码
+const AuthRegisterCaptcha='wx/auth/regCaptcha'; //短信验证码
 export function authRegisterCaptcha(data) {
   return request({
     url: AuthRegisterCaptcha,
@@ -91,7 +91,7 @@ export function authCaptcha(data) {
   })
 }
 
-const GetKaptcha='wx/auth/kaptcha'; //验证码
+const GetKaptcha='wx/auth/kaptcha'; //图形验证码
 export function getKaptcha() {
   return request({
     url: GetKaptcha,
@@ -442,6 +442,29 @@ export function userIndex() {
     method: 'get'
   })
 }
+
+export function userCoin() {
+  return request({
+    url: 'wx/user/coin',
+    method: 'get'
+  })
+}
+
+export function userCoinRecords() {
+  return request({
+    url: 'wx/coin/list',
+    method: 'get'
+  })
+}
+
+export function coinAccount(data) {
+  return request({
+    url: 'wx/coin/account',
+    method: 'post',
+    data
+  })
+}
+
 const IssueList='wx/issue/list'; //帮助信息
 export function issueList() {
   return request({
