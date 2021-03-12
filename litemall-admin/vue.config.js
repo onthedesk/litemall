@@ -30,6 +30,17 @@ module.exports = {
   productionSourceMap: false,
   devServer: {
     port: port,
+    proxy: {
+      "/": {
+        target: 'http://localhost:8080/',
+        changeOrigin: true,
+        onProxyRes: function (proxyRes, req, res) {
+          proxyRes.headers['Access-Control-Allow-Origin'] = '*'
+          proxyRes.headers['Access-Control-Allow-Headers'] = 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, sessionid, cross-request-open-sign'
+          proxyRes.headers['Access-Control-Allow-Methods'] = 'GET,HEAD,OPTIONS,POST,PUT'
+        }
+      }
+    },
     open: true,
     overlay: {
       warnings: false,

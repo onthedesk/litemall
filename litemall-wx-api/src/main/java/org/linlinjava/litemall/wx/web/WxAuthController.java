@@ -134,7 +134,6 @@ public class WxAuthController {
             return ResponseUtil.serious();
         } else if (userList.size() == 0) {
 
-            // todo 首次登录，注册账号
             // return ResponseUtil.fail(AUTH_INVALID_ACCOUNT, "账号不存在");
             user = new LitemallUser();
             user.setMobile(mobile);
@@ -142,7 +141,7 @@ public class WxAuthController {
             user.setGender((byte) 0);
             user.setUserLevel((byte) 0);
             user.setStatus((byte) 0);
-            user.setUsername("");
+            user.setUsername(mobile);
             user.setPassword("");
             userService.add(user);
 
