@@ -54,6 +54,7 @@ public class PlatformAccountService {
             account.setPlatformName(platform.getName());
             account.setPlatformPhone(platform.getPhone());
             account.setMobile(platformAccount.getMobile());
+            account.setAccountId(platformAccount.getId());
 
             accounts.add(account);
         }

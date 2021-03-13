@@ -24,7 +24,7 @@ export default [
     path: '/user',
     name: 'user',
     meta: {
-      keepAlive: true,
+      keepAlive: false,
       login: true,
       showHeader:false
     },

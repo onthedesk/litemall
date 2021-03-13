@@ -10,11 +10,11 @@
       <van-list class="device-list" v-model="isLoading" :finished="isFinished" finished-text="没有更多了" @load="onListLoad">
         <div class="item" v-for="(item,index) in list" :key="index">
           <div class="top">
-            <div class="name">{{ item.title }}</div>
-            <div class="type">{{ item.type }}</div>
-            <div class="amount">{{item.amount}}</div>
+            <div class="name">{{ item.transId }}</div>
+            <div class="type">{{ item.type | typeFilter }}</div>
+            <div class="amount">{{ Number(item.amount / 10000 ).toFixed(2) }}</div>
           </div>
-          <div class="time">{{item.createTime}}</div>
+          <div class="time">{{item.addTime}}</div>
         </div>
       </van-list>
     </van-pull-refresh>
@@ -34,36 +34,27 @@
 		name: "coin-list",
 		data () {
 			return {
-				list: [
-          {
-          	title: '交易',
-            amount: 100,
-            type: '类型',
-            createTime: '2020-10-10 10:00:12'
-          },
-					{
-						title: '交易',
-						type: '类型',
-						amount: 100,
-						createTime: '2020-10-10 10:00:12'
-					},
-					{
-						title: '交易',
-						type: '类型',
-						amount: 100,
-						createTime: '2020-10-10 10:00:12'
-					}
-        ],
+				list: [],
 				isRefreshing: false,
 				isLoading: false,
 				isError: false,
-				isFinished: false,
+				isFinished: true,
 				currentPage: 0
 			}
 		},
+    filters: {
+			typeFilter(value) {
+				let typeStrs = [
+					'兑换',
+          '订单支付',
+          '退款'
+        ]
+        return typeStrs[value]
+      }
+    },
     created() {
       userCoinRecords().then(res => {
-      	console.log(res.data)
+        this.list = res.data.data.list
       })
 		},
     methods: {

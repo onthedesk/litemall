@@ -465,6 +465,14 @@ export function coinAccount(data) {
   })
 }
 
+export function coinExchange(data) {
+  return request({
+    url: 'wx/coin/exchange',
+    method: 'post',
+    data
+  })
+}
+
 const IssueList='wx/issue/list'; //帮助信息
 export function issueList() {
   return request({

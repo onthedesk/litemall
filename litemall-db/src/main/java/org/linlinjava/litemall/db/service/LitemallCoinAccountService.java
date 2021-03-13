@@ -13,12 +13,18 @@ import java.time.LocalDateTime;
 public class LitemallCoinAccountService {
     @Resource
     private LitemallCoinAccountMapper coinAccountMapper;
-    private Column[] columns = new Column[]{Column.id, Column.userId, Column.endTime, Column.availableAmount};
+    private Column[] columns = new Column[]{Column.id, Column.userId, Column.endTime, Column.availableAmount, Column.totalAmount};
+
+    public LitemallCoinAccount getCoinAccountByUserIdSelecttive(Integer userId) {
+        LitemallCoinAccountExample example = new LitemallCoinAccountExample();
+        example.or().andUserIdEqualTo(userId).andDeletedEqualTo(false);
+        return coinAccountMapper.selectOneByExampleSelective(example, columns);
+    }
 
     public LitemallCoinAccount getCoinAccountByUserId(Integer userId) {
         LitemallCoinAccountExample example = new LitemallCoinAccountExample();
         example.or().andUserIdEqualTo(userId).andDeletedEqualTo(false);
-        return coinAccountMapper.selectOneByExampleSelective(example, columns);
+        return coinAccountMapper.selectOneByExample(example);
     }
 
     public int createCoinAccount(LitemallCoinAccount account) {
@@ -28,5 +34,13 @@ public class LitemallCoinAccountService {
         account.setUpdateTime(LocalDateTime.now());
         account.setDeleted(Boolean.FALSE);
         return coinAccountMapper.insert(account);
+    }
+
+    public int updateCoinAccount(LitemallCoinAccount account) {
+        LitemallCoinAccountExample example = new LitemallCoinAccountExample();
+        account.setVersion(account.getVersion() + 1);
+        account.setUpdateTime(LocalDateTime.now());
+        example.or().andIdEqualTo(account.getId());
+        return coinAccountMapper.updateByExampleSelective(account, example);
     }
 }

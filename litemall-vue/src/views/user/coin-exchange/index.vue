@@ -115,7 +115,7 @@
           </template>
         </van-field>
         <div class="notify-failed-wrapper">
-          <span>收不到验证码？</span>
+          <span @click="cannotGetCaptcha">收不到验证码？</span>
         </div>
         <div style="margin: 16px;">
           <van-button round block type="danger" native-type="submit">立即兑换</van-button>
@@ -124,19 +124,31 @@
     </van-cell-group>
   </div>
 
+  <div class="success-wrapper" v-if="active === 3">
+    <van-empty
+            class="custom-image"
+            :image="successsImg"
+            description="恭喜您，兑换成功！"/>
+
+    <div class="count-go-user">{{count}}秒后返回个人中心</div>
+  </div>
+
 </div>
 </template>
 
 <script>
 
-  import { coinAccount, authCaptcha } from '@/api/api'
+  import { coinAccount, authCaptcha, coinExchange } from '@/api/api'
 
-  import { Form, Field, Step, Steps, Toast, Dialog } from 'vant'
+  import { Form, Field, Step, Steps, Toast, Dialog, Empty } from 'vant'
+
+  import successsImg from '../../../assets/images/exchange_success.png'
   import Vue from 'vue'
   Vue.use(Form)
   Vue.use(Field)
   Vue.use(Step)
   Vue.use(Steps)
+	Vue.use(Empty)
 	export default {
 		name: "index",
     data() {
@@ -148,6 +160,9 @@
         amount: '',
 				counting: false,
 				active: 0,
+        timer: null,
+        count: 3,
+				successsImg: successsImg,
         currentPlatform: null
       }
     },
@@ -219,7 +234,40 @@
 				})
       },
 			onExchangeSubmit() {
+				// 没有输入短信验证码
+        if (!/^\d{6}$/.test(this.code)) {
+        	Toast.fail('请输入正确的短信验证码')
+        	return false
+        }
 
+        // 没有输入兑换金额
+        if (!this.amount) {
+        	Toast.fail('请输入兑换金额')
+          return false
+        }
+
+        // 输入的兑换金额比可兑换金额大
+        if (Number(this.amount) > Number(this.currentPlatform.availableAmount)) {
+        	Toast.fail('兑换金额不能大于可兑换金额')
+          return false
+        }
+
+        // todo 输入的金额小于最小可兑换金额
+
+				coinExchange({
+          amount: this.amount,
+          mobile: this.currentPlatform.mobile,
+          accountId: this.currentPlatform.accountId,
+          code: this.code
+        }).then(res => {
+        	let data = res.data
+          if (data.errno === 0)  {
+						this.active += 1;
+            this.goUser();
+					}
+        }).catch(error => {
+        	Toast.fail(error.data.errmsg)
+        })
       },
 			toExchange(item) {
 				this.currentPlatform = item
@@ -243,6 +291,25 @@
       },
 			countDownEnd() {
 				this.counting = false;
+			},
+			cannotGetCaptcha() {},
+			goUser() {
+				const TIME_COUNT = 3;
+				if (!this.timer) {
+					this.count = TIME_COUNT;
+					this.timer = setInterval(() => {
+						if (this.count > 0 && this.count <= TIME_COUNT) {
+							this.count--;
+						} else {
+							clearInterval(this.timer);
+							this.timer = null;
+							//跳转的页面写在此处
+							  this.$router.push({
+							  path:'/user/',
+							})
+						}
+					}, 1000)
+				}
 			}
     }
 	}
@@ -342,4 +409,16 @@
     color: #1989fa;
   }
 
+  .count-go-user {
+    font-size: 12px;
+    color: #23a6e5;
+    text-align: center;
+  }
+</style>
+
+<style lang="scss">
+  .custom-image .van-empty__image {
+    width: 200px;
+    height: auto;
+  }
 </style>

@@ -55,16 +55,12 @@ export default {
     };
   },
 
-  activated() {
-    this.getUserInfo();
-  },
-
   created() {
+		this.getUserInfo();
 		userCoin().then(res => {
-			console.log(res)
       if (res.data.data.coin) {
       	let coin = res.data.data.coin
-      	this.amount = coin.availableAmount
+      	this.amount = Number(coin.availableAmount / 10000).toFixed(2)
         this.dueDate = coin.endTime.split(' ')[0]
       }
     }).catch(error => {

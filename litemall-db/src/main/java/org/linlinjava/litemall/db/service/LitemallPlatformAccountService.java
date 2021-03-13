@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,5 +35,17 @@ public class LitemallPlatformAccountService {
         // 只绑定未被绑定的平台账户
         example.or().andIdcardNumberEqualTo(idCard).andRealNameEqualTo(name).andUserIdIsNull();
         accountMapper.updateByExampleSelective(account, example);
+    }
+
+    public LitemallPlatformAccount getById(Integer accountId) {
+        return accountMapper.selectByPrimaryKey(accountId);
+    }
+
+    public int updatePlatformAccount(LitemallPlatformAccount account) {
+        LitemallPlatformAccountExample example = new LitemallPlatformAccountExample();
+        account.setVersion(account.getVersion() + 1);
+        account.setUpdateTime(LocalDateTime.now());
+        example.or().andIdEqualTo(account.getId());
+        return accountMapper.updateByExampleSelective(account, example);
     }
 }

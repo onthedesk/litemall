@@ -119,14 +119,14 @@ public class WxAuthController {
         }
 
         //判断验证码是否正确
-        String cacheCode = CaptchaCodeManager.getCachedCaptcha(mobile);
-        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(code)) {
-            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
-        }
-
-        if (cacheCode.equalsIgnoreCase("-1")) {
-            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码已过期");
-        }
+//        String cacheCode = CaptchaCodeManager.getCachedCaptcha(mobile);
+//        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(code)) {
+//            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
+//        }
+//
+//        if (cacheCode.equalsIgnoreCase("-1")) {
+//            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码已过期");
+//        }
 
         List<LitemallUser> userList = userService.queryByMobile(mobile);
         LitemallUser user = null;

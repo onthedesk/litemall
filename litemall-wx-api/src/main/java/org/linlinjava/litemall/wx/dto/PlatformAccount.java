@@ -13,6 +13,16 @@ public class PlatformAccount {
     private String idCardNumber;
     private String mobile;
 
+    public Integer getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Integer accountId) {
+        this.accountId = accountId;
+    }
+
+    private Integer accountId;
+
     public String getPlatformName() {
         return platformName;
     }
