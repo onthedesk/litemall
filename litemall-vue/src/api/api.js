@@ -323,6 +323,15 @@ export function orderH5pay(data) {
     data
   });
 }
+
+export function coinPay(data) {
+  return request({
+    url: 'wx/order/coinpay',
+    method: 'post',
+    data
+  })
+}
+
 export const OrderList='wx/order/list'; //订单列表
 export function orderList(query) {
   return request({

@@ -574,7 +574,7 @@ public class WxOrderService {
             return ResponseUtil.badArgumentValue();
         }
 
-        // 检测是否能够取消
+        // 检测是否能够支付
         OrderHandleOption handleOption = OrderUtil.build(order);
         if (!handleOption.isPay()) {
             return ResponseUtil.fail(ORDER_INVALID_OPERATION, "订单不能支付");
@@ -636,7 +636,7 @@ public class WxOrderService {
             return ResponseUtil.badArgumentValue();
         }
 
-        // 检测是否能够取消
+        // 检测是否能够支付
         OrderHandleOption handleOption = OrderUtil.build(order);
         if (!handleOption.isPay()) {
             return ResponseUtil.fail(ORDER_INVALID_OPERATION, "订单不能支付");

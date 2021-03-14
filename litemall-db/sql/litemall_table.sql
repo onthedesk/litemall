@@ -835,3 +835,118 @@ CREATE TABLE `litemall_user` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-12-16 23:12:57
+
+
+/* 新增表
+ */
+
+ /*
+ 积分账户表
+  */
+
+
+
+DROP TABLE IF EXISTS `litemall_coin_account`;
+
+
+CREATE TABLE `litemall_coin_account` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '用户表ID',
+  `total_amount` int(11) NOT NULL DEFAULT '0' COMMENT '总金额',
+  `available_amount` int(11) NOT NULL DEFAULT '0' COMMENT '可用金额',
+  `unavailable_amount` int(11) NOT NULL DEFAULT '0' COMMENT '不可用金额',
+  `used_amount` int(11) NOT NULL DEFAULT '0' COMMENT '已使用金额',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '账户状态：0正常，1已锁定',
+  `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '账户有效期开始时间',
+  `end_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '账户有效期结束时间',
+  `version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '新增时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分表\n总金额=可用金额+不可用金额+已使用金额';
+
+
+DROP TABLE IF EXISTS `litemall_coin_records`;
+
+CREATE TABLE `litemall_coin_records` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '用户表ID',
+  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '积分变动类型:0兑换，1支付，2退款',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '积分变动状态：0待确认，1已确认，2已撤销',
+  `amount` int(11) NOT NULL DEFAULT '0' COMMENT '积分变动金额',
+  `order_id` int(11) DEFAULT NULL COMMENT '订单ID',
+  `trans_id` int(11) DEFAULT NULL COMMENT '积分兑换记录ID',
+  `fail_reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '撤销或失败原因',
+  `version` int(11) NOT NULL COMMENT '版本号',
+  `success_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '成功或确认时间',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '新增时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `order_id` (`order_id`),
+  KEY `trans_id` (`trans_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='积分变动记录表';
+
+
+DROP TABLE IF EXISTS `litemall_platform`;
+
+
+CREATE TABLE `litemall_platform` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '合作平台名称',
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '客服电话',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '新增时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='合作平台表';
+
+
+DROP TABLE IF EXISTS `litemall_platform_account`;
+
+
+CREATE TABLE `litemall_platform_account` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `platfrom_id` int(11) DEFAULT NULL COMMENT '平台ID',
+  `mobile` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
+  `real_name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '姓名',
+  `idcard_number` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '身份证号',
+  `user_id` int(11) DEFAULT NULL COMMENT '用户表ID',
+  `version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `available_amount` int(11) NOT NULL DEFAULT '0' COMMENT '可用金额',
+  `unavailable_amount` int(11) NOT NULL DEFAULT '0' COMMENT '不可用金额',
+  `principle_amount` int(11) NOT NULL DEFAULT '0' COMMENT '本金余额',
+  `due_amount` int(11) DEFAULT '0' COMMENT '净本金余额，部分平台使用，指历史本金减去历史收益之后的金额',
+  `used_amuont` int(11) NOT NULL DEFAULT '0' COMMENT '已使用金额',
+  `total_amount` int(11) NOT NULL DEFAULT '0' COMMENT '总金额',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '账户状态：0正常1锁定',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '新增时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(11) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台账户\n总金额=可用金额+不可用金额+已使用金额\n减少可用金额需要同时增加已使用金额';
+
+
+DROP TABLE IF EXISTS `litemall_platform_transactions`;
+
+
+CREATE TABLE `litemall_platform_transactions` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '用户表ID',
+  `account_id` int(11) NOT NULL COMMENT '账户ID',
+  `platform_id` int(11) NOT NULL COMMENT '平台ID',
+  `amount` int(11) NOT NULL COMMENT '金额',
+  `type` int(11) NOT NULL DEFAULT '1' COMMENT '交易类型：1兑换，2撤销兑换',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '交易状态：0待确认，1已确认，2已拒绝',
+  `add_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '新增时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
+  `version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '逻辑删除',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `account_id` (`account_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

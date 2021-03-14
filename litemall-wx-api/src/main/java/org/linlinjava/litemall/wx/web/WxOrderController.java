@@ -2,8 +2,18 @@ package org.linlinjava.litemall.wx.web;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.linlinjava.litemall.core.util.JacksonUtil;
+import org.linlinjava.litemall.core.util.ResponseUtil;
 import org.linlinjava.litemall.core.validator.Order;
 import org.linlinjava.litemall.core.validator.Sort;
+import org.linlinjava.litemall.db.domain.LitemallCoinAccount;
+import org.linlinjava.litemall.db.domain.LitemallCoinRecords;
+import org.linlinjava.litemall.db.domain.LitemallOrder;
+import org.linlinjava.litemall.db.service.LitemallCoinAccountService;
+import org.linlinjava.litemall.db.service.LitemallCoinRecordsService;
+import org.linlinjava.litemall.db.service.LitemallOrderService;
+import org.linlinjava.litemall.db.util.OrderHandleOption;
+import org.linlinjava.litemall.db.util.OrderUtil;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
 import org.linlinjava.litemall.wx.service.WxOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +23,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.linlinjava.litemall.wx.util.WxResponseCode.ORDER_INVALID_OPERATION;
 
 @RestController
 @RequestMapping("/wx/order")
@@ -22,6 +36,15 @@ public class WxOrderController {
 
     @Autowired
     private WxOrderService wxOrderService;
+
+    @Autowired
+    private LitemallOrderService orderService;
+
+    @Autowired
+    private LitemallCoinAccountService  coinAccountService;
+
+    @Autowired
+    private LitemallCoinRecordsService coinRecordsService;
 
     /**
      * 订单列表
@@ -78,6 +101,87 @@ public class WxOrderController {
     @PostMapping("cancel")
     public Object cancel(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.cancel(userId, body);
+    }
+
+    /**
+     * 订单积分支付
+     *
+     * todo 引入事务
+     */
+    @PostMapping("coinpay")
+    public Object coinPay(@LoginUser Integer userId, @RequestBody String body) {
+        if (userId == null) {
+            return ResponseUtil.unlogin();
+        }
+
+        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
+
+        if (orderId == null) {
+            return ResponseUtil.fail(761, "请确认订单信息");
+        }
+
+        // 获取订单
+
+        LitemallOrder order = orderService.findById(userId, orderId);
+        if (order == null) {
+            return ResponseUtil.badArgumentValue();
+        }
+        if (!order.getUserId().equals(userId)) {
+            return ResponseUtil.badArgumentValue();
+        }
+
+        LocalDateTime preUpdateTime = order.getUpdateTime();
+
+        // 检测是否能够支付
+        OrderHandleOption handleOption = OrderUtil.build(order);
+        if (!handleOption.isPay()) {
+            return ResponseUtil.fail(ORDER_INVALID_OPERATION, "订单不能支付");
+        }
+
+        // 获取积分账户信息
+        LitemallCoinAccount coinAccount = coinAccountService.getCoinAccountByUserId(userId);
+
+        // 积分账户信息存在
+        if (coinAccount == null) {
+            return ResponseUtil.fail(762, "您尚未进行积分兑换，请完成积分兑换后再支付");
+        }
+
+        // 积分账户余额大于订单应付金额
+        BigDecimal actualPrice = order.getActualPrice();
+        Integer price = actualPrice.multiply(new BigDecimal(10000)).intValue();
+        if (price > coinAccount.getAvailableAmount())  {
+            return ResponseUtil.fail(763, "积分账户余额不足！");
+        }
+
+        try {
+            // 扣减积分账户余额
+            coinAccount.setAvailableAmount(coinAccount.getAvailableAmount() - price);
+            coinAccount.setUsedAmount(coinAccount.getUsedAmount() + price);
+            coinAccountService.updateCoinAccount(coinAccount);
+
+            // 新增积分交易记录
+            LitemallCoinRecords coinRecords = new LitemallCoinRecords();
+            coinRecords.setOrderId(orderId);
+            coinRecords.setAmount(price);
+            coinRecords.setType(1);
+            coinRecords.setUserId(userId);
+            Integer payId = coinRecordsService.createCoinRecord(coinRecords);
+
+            // 修改订单状态
+            order.setPayId(payId.toString());
+            order.setPayTime(LocalDateTime.now());
+            order.setOrderStatus(OrderUtil.STATUS_PAY);
+            if (orderService.updateWithOptimisticLocker(order) == 0) {
+                return ResponseUtil.fail(764, "更新数据已失效");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 订单支付成功
+
+        return ResponseUtil.ok();
     }
 
     /**

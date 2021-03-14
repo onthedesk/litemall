@@ -9,7 +9,7 @@
     <van-cell-group class="payment_group">
       <van-cell title="订单编号" :value="order.orderInfo.orderSn"/>
       <van-cell title="实付金额">
-        <span class="red">{{order.orderInfo.actualPrice *100 | yuan}}</span>
+        <span class="red">{{order.orderInfo.actualPrice * 100 | yuan}}</span>
       </van-cell>
     </van-cell-group>
 
@@ -21,6 +21,7 @@
             <template slot="title">
               <van-icon name="gift" class="pay_type_icon coin"></van-icon>
               <span class="pay_type_text">积分支付</span>
+              <span class="balance">(余额: {{ this.coinAmount }})</span>
             </template>
             <template slot="right-icon">
               <van-radio name="coin"/>
@@ -53,8 +54,8 @@
 </template>
 
 <script>
-import { Radio, RadioGroup, Dialog } from 'vant';
-import { orderDetail, orderPrepay, orderH5pay } from '@/api/api';
+import { Radio, RadioGroup, Dialog, Toast} from 'vant';
+import { orderDetail, orderPrepay, orderH5pay, userCoin, coinPay } from '@/api/api';
 import _ from 'lodash';
 import { getLocalStorage, setLocalStorage } from '@/utils/local-storage';
 
@@ -63,11 +64,17 @@ export default {
 
   data() {
     return {
-      payWay: 'wx',
+      payWay: 'coin',
       order: {
         orderInfo: {},
         orderGoods: []
       },
+			payWayStr: {
+				wx: '微信支付',
+				coin: '积分支付',
+				alipay: '支付宝支付'
+			},
+			coinAmount: 0,
       orderId: 0
     };
   },
@@ -76,6 +83,15 @@ export default {
       this.orderId = this.$route.params.orderId;
       this.getOrder(this.orderId);
     }
+
+		userCoin().then(res => {
+			if (res.data.data.coin) {
+				let coin = res.data.data.coin
+				this.coinAmount = Number(coin.availableAmount / 10000).toFixed(2)
+			}
+		}).catch(error => {
+			Toast.fail(error.data.errmsg)
+		})
   },
   methods: {
     getOrder(orderId) {
@@ -85,8 +101,13 @@ export default {
     },
     pay() {
 
+			if (this.payWay === 'coin' && (this.order.orderInfo.actualPrice > this.coinAmount)) {
+				Toast.fail('积分余额不足，请选择其他支付方式')
+        return false
+      }
+
       Dialog.alert({
-        message: '你选择了' + (this.payWay === 'wx' ? '微信支付' : '支付宝支付')
+        message: '您选择了' + this.payWayStr[this.payWay]
       }).then(() => {
         if (this.payWay === 'wx') {
           let ua = navigator.userAgent.toLowerCase();
@@ -154,10 +175,22 @@ export default {
                 Dialog.alert({ message: err.data.errmsg });
               });
           }
-        } else {
-          //todo : alipay
+        } else if (this.payWay === 'coin') {
+            // 积分支付
+					coinPay({
+            orderId: this.orderId
+          }).then( res => {
+          	if (res.data.errno === 0) {
+          		Toast.success("恭喜您，订单支付成功")
+          		this.$router.push('/user')
+            }
+          }).catch(error => {
+          	Toast.fail(error.data.errmsg)
+          })
 
-          //todo: 积分支付
+
+        } else {
+					//todo : alipay
         }
       });
     },
@@ -239,6 +272,13 @@ export default {
   display: inline-block;
   line-height: 32px;
   padding-left: 5px;
+}
+
+.balance {
+  display: inline-block;
+  line-height: 32px;
+  padding-left: 5px;
+  color: #027aff;
 }
 
 .pay_submit {

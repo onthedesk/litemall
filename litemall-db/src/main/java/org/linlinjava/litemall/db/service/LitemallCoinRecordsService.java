@@ -31,6 +31,7 @@ public class LitemallCoinRecordsService {
         coinRecord.setAddTime(LocalDateTime.now());
         coinRecord.setUpdateTime(LocalDateTime.now());
         coinRecord.setDeleted(Boolean.FALSE);
-        return coinRecordsMapper.insert(coinRecord);
+        coinRecordsMapper.insert(coinRecord);
+        return coinRecord.getId();
     }
 }
