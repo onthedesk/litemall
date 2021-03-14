@@ -8,5 +8,5 @@ then
     kill $PID
 fi
 
-cd /home/ubuntu/deploy/litemall || exit 2
+cd /data/zh-mall/deploy/litemall || exit 2
 nohup java -jar litemall.jar > log.log 2>&1 &
